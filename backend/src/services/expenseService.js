@@ -52,6 +52,36 @@ const createExpense = async ({ description, totalAmount, paidBy, splitType, part
       user: p.user,
       share: roundTo2(p.share),
     }));
+  }  else if (splitType === 'percentage') {
+    // Validate percentage are provided
+    const hasPercentages = participants.every((p) => p.percentage !== undefined);
+    if (!hasPercentages) {
+      throw { statusCode: 400, message: 'Each participant must have a percentage' };
+    }
+
+    const totalPercentage = roundTo2(participants.reduce((sum, p) => sum + p.percentage, 0));
+    if (totalPercentage !== 100) {
+      throw { statusCode: 400, message: `Sum of percentages must be 100, got ${totalPercentage}` };
+    }
+
+    finalParticipants = participants.map((p) => ({
+      user: p.user,
+      share: roundTo2((p.percentage / 100) * totalAmount),
+    }));
+
+  } else if (splitType === 'shares') {
+    // Validate shares are provided
+    const hasUnits = participants.every((p) => p.units !== undefined && p.units > 0);
+    if (!hasUnits) {
+      throw { statusCode: 400, message: 'Each participant must have units greater than 0' };
+    }
+
+    const totalUnits = participants.reduce((sum, p) => sum + p.units, 0);
+
+    finalParticipants = participants.map((p) => ({
+      user: p.user,
+      share: roundTo2((p.units / totalUnits) * totalAmount),
+    }));
   }
 
   // 5. Save to DB

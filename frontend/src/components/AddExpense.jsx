@@ -19,10 +19,9 @@ export default function AddExpense() {
         : [...prev, { user: userId, share: '' }]
     );
   };
-
-  const updateShare = (userId, share) => {
+  const updateShare = (userId, field, value) => {
     setParticipants(prev =>
-      prev.map(p => p.user === userId ? { ...p, share: parseFloat(share) || 0 } : p)
+      prev.map(p => p.user === userId ? { ...p, [field]: parseFloat(value) || 0 } : p)
     );
   };
 
@@ -55,6 +54,8 @@ export default function AddExpense() {
       <select value={splitType} onChange={e => setSplitType(e.target.value)} style={inputStyle}>
         <option value="equal">Equal</option>
         <option value="unequal">Unequal</option>
+        <option value="percentage">Percentage (%)</option>
+        <option value="shares">Shares (units)</option>
       </select>
 
       <label style={labelStyle}>Participants:</label>
@@ -72,6 +73,22 @@ export default function AddExpense() {
               placeholder="Share"
               style={{ padding: 6, width: 100 }}
               onChange={e => updateShare(u._id, e.target.value)}
+            />
+          )}
+
+          {/* Percentage — show % input */}
+          {splitType === 'percentage' && participants.find(p => p.user === u._id) && (
+            <input type="number" placeholder="% Percent"
+              style={{ padding: 6, width: 100 }}
+              onChange={e => updateShare(u._id, 'percentage', e.target.value)}
+            />
+          )}
+
+          {/* Shares — show units input */}
+          {splitType === 'shares' && participants.find(p => p.user === u._id) && (
+            <input type="number" placeholder="Units"
+              style={{ padding: 6, width: 100 }}
+              onChange={e => updateShare(u._id, 'units', e.target.value)}
             />
           )}
         </div>
